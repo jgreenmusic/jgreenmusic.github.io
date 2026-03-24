@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Julian Green — Electroacoustic Composer, Performer, and PhD Candidate at the University of Oregon" />
+  <title>Julian Green — Electroacoustic Composer</title>
+
+  <!--
+    FONTS: Space Grotesk — clean technical aesthetic that pairs well
+    with a glitch direction later. Remove this link to go fully offline
+    and update --font-sans in style.css to use system-ui only.
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+    NAVIGATION
+  ============================================================ -->
+  <header class="site-header" id="site-header">
+    <nav class="nav">
+      <a href="#hero" class="nav-logo">Julian Green</a>
+
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#works"    class="nav-link">Works</a></li>
+        <li><a href="#about"    class="nav-link">About</a></li>
+        <li><a href="#research" class="nav-link">Research</a></li>
+        <li><a href="#events"   class="nav-link">Events</a></li>
+        <li><a href="#press"    class="nav-link">Press</a></li>
+        <li><a href="#contact"  class="nav-link">Contact</a></li>
+      </ul>
+
+      <button class="menu-toggle" id="menu-toggle"
+        aria-label="Toggle navigation" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ============================================================
+      HERO
+    ============================================================ -->
+    <section id="hero" class="hero">
+      <div class="hero-content">
+        <p class="hero-subtitle">Electroacoustic Composer &amp; Performer</p>
+        <!--
+          GLITCH: To enable the glitch split effect on your name,
+          add class="glitch" and data-text="JULIAN GREEN" to the h1,
+          then uncomment the .glitch rules in style.css.
+        -->
+        <h1 class="hero-name">Julian Green</h1>
+        <p class="hero-tagline">PhD Candidate · University of Oregon</p>
+      </div>
+    </section>
+
+
+    <!-- ============================================================
+      WORKS
+    ============================================================ -->
+    <section id="works" class="section">
+      <div class="container">
+        <h2 class="section-heading">Works</h2>
+
+        <!-- Filter tabs — update data-filter values to match your categories -->
+        <div class="filter-tabs" role="tablist" aria-label="Filter works by format">
+          <button class="filter-tab active" data-filter="all"            role="tab" aria-selected="true">All</button>
+          <button class="filter-tab"        data-filter="acousmatic"     role="tab" aria-selected="false">Acousmatic</button>
+          <button class="filter-tab"        data-filter="electroacoustic" role="tab" aria-selected="false">Electroacoustic</button>
+          <button class="filter-tab"        data-filter="multimedia"     role="tab" aria-selected="false">Multimedia</button>
+        </div>
+
+        <div class="works-list" id="works-list">
+
+          <!-- ========================================================
+            WORK ITEM TEMPLATE
+            Copy this block for each piece.
+            Set data-category to one of: acousmatic | electroacoustic | multimedia
+            (or whatever categories you defined in the filter tabs above)
+          ======================================================== -->
+          <article class="work-item" data-category="acousmatic">
+            <div class="work-header">
+              <h3 class="work-title">Title of Work</h3>
+              <span class="work-year">2024</span>
+            </div>
+            <div class="work-meta">
+              <span class="work-format">Acousmatic — 8 channels</span>
+              <span class="work-duration">12'45"</span>
+            </div>
+            <p class="work-notes">
+              Program notes describing the concept, materials, and process of the work.
+              Typically 2–4 sentences. Replace this text with your own description.
+            </p>
+            <p class="work-premiere">
+              Premiered at <strong>Festival Name</strong>, City, Country · 2024
+            </p>
+
+            <!--
+              AUDIO OPTIONS — choose one and delete the others:
+
+              A) Self-hosted MP3:
+              <div class="work-audio">
+                <audio class="audio-player" controls preload="none">
+                  <source src="assets/audio/title-of-work.mp3" type="audio/mpeg">
+                </audio>
+              </div>
+
+              B) SoundCloud embed:
+              <div class="work-embed">
+                <iframe width="100%" height="120" scrolling="no" frameborder="no"
+                  src="https://w.soundcloud.com/player/?url=YOUR_SOUNDCLOUD_URL
+                    &color=%23e8e8e8&auto_play=false&hide_related=true
+                    &show_comments=false&show_user=false&visual=false">
+                </iframe>
+              </div>
+
+              C) External link only:
+              <a href="https://soundcloud.com/yourlink" class="work-link"
+                target="_blank" rel="noopener">Listen ↗</a>
+            -->
+            <div class="work-audio">
+              <audio class="audio-player" controls preload="none">
+                <source src="assets/audio/title-of-work.mp3" type="audio/mpeg">
+                Your browser does not support the audio element.
+              </audio>
+            </div>
+          </article>
+          <!-- /WORK ITEM -->
+
+
+          <article class="work-item" data-category="electroacoustic">
+            <div class="work-header">
+              <h3 class="work-title">Another Work</h3>
+              <span class="work-year">2023</span>
+            </div>
+            <div class="work-meta">
+              <span class="work-format">Electroacoustic — flute and tape</span>
+              <span class="work-duration">7'20"</span>
+            </div>
+            <p class="work-notes">
+              Description of this electroacoustic work for instrument and electronics.
+              Replace with your own program notes.
+            </p>
+            <p class="work-premiere">
+              Premiered at <strong>Venue Name</strong>, City · 2023
+            </p>
+            <a href="#" class="work-link" target="_blank" rel="noopener">Listen ↗</a>
+          </article>
+
+
+          <article class="work-item" data-category="multimedia">
+            <div class="work-header">
+              <h3 class="work-title">Audiovisual Piece</h3>
+              <span class="work-year">2022</span>
+            </div>
+            <div class="work-meta">
+              <span class="work-format">Audiovisual — stereo + video</span>
+              <span class="work-duration">15'00"</span>
+            </div>
+            <p class="work-notes">
+              Description of an audiovisual or multimedia work.
+            </p>
+            <p class="work-premiere">
+              Premiered at <strong>Festival Name</strong>, City · 2022
+            </p>
+            <a href="#" class="work-link" target="_blank" rel="noopener">Watch ↗</a>
+          </article>
+
+        </div><!-- /works-list -->
+      </div>
+    </section>
+
+
+    <!-- ============================================================
+      ABOUT
+    ============================================================ -->
+    <section id="about" class="section section--alt">
+      <div class="container">
+        <h2 class="section-heading">About</h2>
+
+        <div class="about-grid">
+          <div class="about-photo">
+            <!--
+              Replace src with your photo path.
+              If no photo yet, delete the <img> and uncomment the placeholder div:
+              <div class="photo-placeholder"></div>
+            -->
+            <img
+              src="assets/images/photo.jpg"
+              alt="Julian Green"
+              loading="lazy"
+            />
+          </div>
+
+          <div class="about-text">
+            <p class="about-lead">
+              Julian Green is an electroacoustic composer and performer currently
+              based in Eugene, Oregon.
+            </p>
+            <p>
+              <!-- Replace with 2–3 sentences about what your work explores.
+                   Example: His work focuses on the interplay between recorded
+                   environment and synthesis, drawing on practices in acousmatic
+                   composition and live electronics. -->
+              [Replace with your own bio — what your work explores, your
+              compositional interests, and any notable projects or collaborators.]
+            </p>
+            <p>
+              <!-- Performances, commissions, recognition — fill in as relevant -->
+              [His / Their] work has been presented at [festivals and venues].
+              [Add commissions, awards, or notable recognitions here.]
+            </p>
+            <p>
+              Green is a PhD candidate in Music Composition at the University of
+              Oregon, where he also [teaches / serves as a teaching fellow / works
+              as a research assistant — update as appropriate].
+            </p>
+            <div class="about-links">
+              <a href="assets/cv.pdf" class="btn" target="_blank" rel="noopener">
+                Download CV
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============================================================
+      RESEARCH
+      Remove this section entirely if you prefer not to foreground
+      your academic work. Add / remove interest items freely.
+    ============================================================ -->
+    <section id="research" class="section">
+      <div class="container">
+        <h2 class="section-heading">Research</h2>
+
+        <div class="research-grid">
+
+          <div class="research-block">
+            <h3 class="research-title">Interests</h3>
+            <ul class="research-list">
+              <!-- Replace with your actual research interests -->
+              <li>Acousmatic composition and listening</li>
+              <li>Spectral and timbral transformation</li>
+              <li>Live electronics and real-time processing</li>
+              <li>Sound synthesis and granular techniques</li>
+              <li>[Add or replace with your own areas]</li>
+            </ul>
+          </div>
+
+          <div class="research-block">
+            <h3 class="research-title">Current Projects</h3>
+            <p class="research-body">
+              <!-- Replace with a sentence or two about your dissertation
+                   or current research focus. -->
+              [Describe your dissertation topic or current research project here.
+              What question are you pursuing? What methods or frameworks are
+              you drawing on?]
+            </p>
+          </div>
+
+          <div class="research-block">
+            <h3 class="research-title">Teaching</h3>
+            <ul class="research-list">
+              <!-- Add courses or areas you teach / have taught -->
+              <li>[Course name, University of Oregon]</li>
+              <li>[Course name, University of Oregon]</li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============================================================
+      EVENTS
+    ============================================================ -->
+    <section id="events" class="section">
+      <div class="container">
+        <h2 class="section-heading">Events</h2>
+
+        <!-- Upcoming -->
+        <div class="events-block">
+          <h3 class="events-subheading">Upcoming</h3>
+          <ul class="events-list">
+
+            <!-- EVENT ITEM TEMPLATE — copy for each event -->
+            <li class="event-item">
+              <time class="event-date" datetime="2025-06-15">15 Jun 2025</time>
+              <div class="event-body">
+                <span class="event-title">Title of Work / Festival Name</span>
+                <span class="event-venue">Venue Name, City, Country</span>
+              </div>
+            </li>
+            <!-- /EVENT ITEM -->
+
+          </ul>
+        </div>
+
+        <!-- Past -->
+        <div class="events-block">
+          <h3 class="events-subheading">Past</h3>
+          <ul class="events-list">
+
+            <li class="event-item">
+              <time class="event-date" datetime="2024-10-12">Oct 2024</time>
+              <div class="event-body">
+                <span class="event-title">Title of Work / Festival Name</span>
+                <span class="event-venue">Venue Name, City, Country</span>
+              </div>
+            </li>
+
+            <li class="event-item">
+              <time class="event-date" datetime="2024-04-22">Apr 2024</time>
+              <div class="event-body">
+                <span class="event-title">Title of Work / Festival Name</span>
+                <span class="event-venue">Venue Name, City, Country</span>
+              </div>
+            </li>
+
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ============================================================
+      PRESS
+    ============================================================ -->
+    <section id="press" class="section section--alt">
+      <div class="container">
+        <h2 class="section-heading">Press</h2>
+
+        <div class="press-grid">
+
+          <!-- PRESS QUOTE TEMPLATE — copy for each quote -->
+          <blockquote class="press-quote">
+            <p>"Replace this with a review quote. Keep quotes concise —
+              one to three sentences works well."</p>
+            <footer>
+              <cite>Publication Name</cite>
+              <span class="press-author">— Reviewer Name, Year</span>
+            </footer>
+          </blockquote>
+          <!-- /PRESS QUOTE -->
+
+          <blockquote class="press-quote">
+            <p>"Another quote from a different review or publication."</p>
+            <footer>
+              <cite>Another Publication</cite>
+              <span class="press-author">— Reviewer Name, Year</span>
+            </footer>
+          </blockquote>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============================================================
+      CONTACT
+    ============================================================ -->
+    <section id="contact" class="section">
+      <div class="container">
+        <h2 class="section-heading">Contact</h2>
+
+        <div class="contact-content">
+          <p class="contact-intro">
+            For commissions, performances, and general enquiries:
+          </p>
+
+          <a href="mailto:your@email.com" class="contact-email">
+            your@email.com
+          </a>
+
+          <ul class="contact-links">
+            <!-- Add or remove links as needed -->
+            <li><a href="https://soundcloud.com/yourprofile" target="_blank" rel="noopener">SoundCloud</a></li>
+            <li><a href="https://bandcamp.com/yourprofile"   target="_blank" rel="noopener">Bandcamp</a></li>
+            <li><a href="https://youtube.com/yourprofile"    target="_blank" rel="noopener">YouTube</a></li>
+            <li><a href="https://instagram.com/yourprofile"  target="_blank" rel="noopener">Instagram</a></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+
+  <!-- ============================================================
+    FOOTER
+  ============================================================ -->
+  <footer class="site-footer">
+    <div class="container">
+      <p class="footer-text">
+        &copy; <span id="footer-year"></span> Julian Green. All rights reserved.
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

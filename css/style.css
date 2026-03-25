@@ -31,25 +31,22 @@
 ---------------------------------------------------------------- */
 :root {
   /* — Background / surface — */
-  --bg:         #0a0a0a;
-  --bg-alt:     #111111;
-  --bg-card:    #141414;
+  --bg:         #07090d;
+  --bg-alt:     #0c0f14;
+  --bg-card:    #111620;
 
   /* — Foreground / text — */
-  --fg:         #e8e8e8;
-  --fg-muted:   #777777;
-  --fg-subtle:  #333333;
+  --fg:         #e4dfd8;
+  --fg-muted:   #a09890;
+  --fg-subtle:  #48443f;
 
-  /* — Accent —
-     Change this one variable to shift the whole palette.
-     Current: neutral white.
-     GLITCH options: #00ff9f (green), #ff0090 (magenta), #7fff00 (acid) */
-  --accent:      #e8e8e8;
-  --accent-dim:  #3a3a3a;
+  /* — Accent — warm amber, recalls analog hardware — */
+  --accent:      #c9a96e;
+  --accent-dim:  #3d3020;
 
   /* — Borders — */
-  --border:       #1c1c1c;
-  --border-hover: #333333;
+  --border:       #1a2030;
+  --border-hover: #2a3548;
 
   /* — Typography — */
   --font-sans: 'Space Grotesk', system-ui, -apple-system, sans-serif;
@@ -83,31 +80,26 @@ body {
   background-color: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans);
-  font-size: 1rem;
-  line-height: 1.7;
+  font-size: 1.0625rem;
+  line-height: 1.8;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/*
-  GLITCH: Scanline / CRT overlay.
-  Uncomment to add a subtle noise texture over the whole page.
-
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.04) 2px,
-      rgba(0, 0, 0, 0.04) 4px
-    );
-    pointer-events: none;
-    z-index: 9999;
-  }
-*/
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 0, 0, 0.025) 3px,
+    rgba(0, 0, 0, 0.025) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
 
 img, audio, video, iframe {
   display: block;
@@ -302,6 +294,14 @@ h1, h2, h3, h4 {
   position: relative;
 }
 
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 55% at 50% 50%, rgba(201, 169, 110, 0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+
 .hero-content {
   text-align: center;
   position: relative;
@@ -339,53 +339,52 @@ h1, h2, h3, h4 {
   color: var(--fg-muted);
 }
 
-/*
-  GLITCH: Text split effect for .hero-name (or any .glitch element).
-  Requires data-text attribute equal to the element's text content.
+.glitch {
+  position: relative;
+}
 
-  .glitch {
-    position: relative;
-  }
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  pointer-events: none;
+}
 
-  .glitch::before,
-  .glitch::after {
-    content: attr(data-text);
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    pointer-events: none;
-  }
+.glitch::before {
+  color: #c96090;
+  clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+  animation: glitch-top 4.5s infinite linear alternate-reverse;
+}
 
-  .glitch::before {
-    color: #ff0090;
-    clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
-    animation: glitch-top 3.5s infinite linear alternate-reverse;
-  }
+.glitch::after {
+  color: #6ab4c9;
+  clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+  animation: glitch-bot 3.5s infinite linear alternate-reverse;
+}
 
-  .glitch::after {
-    color: #00ff9f;
-    clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
-    animation: glitch-bot 2.8s infinite linear alternate-reverse;
-  }
+@keyframes glitch-top {
+  0%   { transform: translate(0); }
+  15%  { transform: translate(0); }
+  16%  { transform: translate(-3px, 1px); }
+  17%  { transform: translate(0); }
+  70%  { transform: translate(0); }
+  71%  { transform: translate(2px, -1px); }
+  72%  { transform: translate(0); }
+  100% { transform: translate(0); }
+}
 
-  @keyframes glitch-top {
-    0%   { transform: translate(0); }
-    20%  { transform: translate(-3px, 1px); }
-    40%  { transform: translate(-1px, -1px); }
-    60%  { transform: translate(3px, 0); }
-    80%  { transform: translate(1px, -2px); }
-    100% { transform: translate(0); }
-  }
-
-  @keyframes glitch-bot {
-    0%   { transform: translate(0); }
-    20%  { transform: translate(3px, -1px); }
-    40%  { transform: translate(1px, 1px); }
-    60%  { transform: translate(-3px, 0); }
-    80%  { transform: translate(-1px, 2px); }
-    100% { transform: translate(0); }
-  }
-*/
+@keyframes glitch-bot {
+  0%   { transform: translate(0); }
+  25%  { transform: translate(0); }
+  26%  { transform: translate(3px, 1px); }
+  27%  { transform: translate(0); }
+  80%  { transform: translate(0); }
+  81%  { transform: translate(-2px, 1px); }
+  82%  { transform: translate(0); }
+  100% { transform: translate(0); }
+}
 
 
 /* ----------------------------------------------------------------
@@ -485,11 +484,11 @@ h1, h2, h3, h4 {
 }
 
 .work-notes {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--fg-muted);
   max-width: 640px;
   margin-bottom: 0.7rem;
-  line-height: 1.65;
+  line-height: 1.75;
 }
 
 .work-premiere {
@@ -580,14 +579,14 @@ h1, h2, h3, h4 {
 }
 
 .about-lead {
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 400;
   margin-bottom: 1.25rem;
-  line-height: 1.65;
+  line-height: 1.7;
 }
 
 .about-text p {
-  font-size: 0.9rem;
+  font-size: 0.97rem;
   color: var(--fg-muted);
   margin-bottom: 0.9rem;
 }
@@ -627,7 +626,7 @@ h1, h2, h3, h4 {
 }
 
 .research-list li {
-  font-size: 0.88rem;
+  font-size: 0.94rem;
   color: var(--fg-muted);
   padding-left: 1rem;
   position: relative;
@@ -641,9 +640,9 @@ h1, h2, h3, h4 {
 }
 
 .research-body {
-  font-size: 0.88rem;
+  font-size: 0.94rem;
   color: var(--fg-muted);
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 /* ----------------------------------------------------------------
@@ -694,7 +693,7 @@ h1, h2, h3, h4 {
 }
 
 .event-title {
-  font-size: 0.9rem;
+  font-size: 0.97rem;
   color: var(--fg);
 }
 
@@ -726,8 +725,8 @@ h1, h2, h3, h4 {
 }
 
 .press-quote p {
-  font-size: 0.92rem;
-  line-height: 1.7;
+  font-size: 0.97rem;
+  line-height: 1.75;
   color: var(--fg-muted);
   font-style: italic;
   margin-bottom: 1rem;
@@ -763,7 +762,7 @@ h1, h2, h3, h4 {
 }
 
 .contact-intro {
-  font-size: 0.88rem;
+  font-size: 0.94rem;
   color: var(--fg-muted);
   margin-bottom: 0.75rem;
 }

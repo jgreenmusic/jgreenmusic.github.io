@@ -50,6 +50,7 @@
 
   /* — Typography — */
   --font-sans: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --font-display: 'Syne', system-ui, sans-serif;
   --font-mono: 'Courier New', 'Lucida Console', monospace;
 
   /* — Layout — */
@@ -319,17 +320,12 @@ h1, h2, h3, h4 {
 
 .hero-name {
   font-size: clamp(2.8rem, 9vw, 7rem);
-  font-weight: 300;
-  letter-spacing: 0.12em;
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--fg);
   margin-bottom: 1.5rem;
-
-  /*
-    GLITCH: Split-color glitch text effect.
-    1. Add class="glitch" data-text="YOUR NAME" to the <h1>
-    2. Uncomment the .glitch rules below.
-  */
 }
 
 .hero-tagline {
@@ -353,36 +349,48 @@ h1, h2, h3, h4 {
 }
 
 .glitch::before {
-  color: #c96090;
+  color: #a855f7;
   clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
-  animation: glitch-top 4.5s infinite linear alternate-reverse;
+  animation: glitch-top 3.5s infinite linear alternate-reverse;
 }
 
 .glitch::after {
-  color: #6ab4c9;
+  color: #eab308;
   clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
-  animation: glitch-bot 3.5s infinite linear alternate-reverse;
+  animation: glitch-bot 2.5s infinite linear alternate-reverse;
 }
 
 @keyframes glitch-top {
   0%   { transform: translate(0); }
-  15%  { transform: translate(0); }
-  16%  { transform: translate(-3px, 1px); }
-  17%  { transform: translate(0); }
-  70%  { transform: translate(0); }
-  71%  { transform: translate(2px, -1px); }
-  72%  { transform: translate(0); }
+  10%  { transform: translate(0); }
+  11%  { transform: translate(-8px, 2px) skewX(-3deg); }
+  12%  { transform: translate(5px, -1px); }
+  13%  { transform: translate(0); }
+  45%  { transform: translate(0); }
+  46%  { transform: translate(7px, -2px) skewX(2deg); }
+  47%  { transform: translate(-4px, 1px); }
+  48%  { transform: translate(0); }
+  78%  { transform: translate(0); }
+  79%  { transform: translate(-6px, 2px); }
+  80%  { transform: translate(3px, -1px) skewX(-1deg); }
+  81%  { transform: translate(0); }
   100% { transform: translate(0); }
 }
 
 @keyframes glitch-bot {
   0%   { transform: translate(0); }
-  25%  { transform: translate(0); }
-  26%  { transform: translate(3px, 1px); }
-  27%  { transform: translate(0); }
-  80%  { transform: translate(0); }
-  81%  { transform: translate(-2px, 1px); }
-  82%  { transform: translate(0); }
+  20%  { transform: translate(0); }
+  21%  { transform: translate(8px, 2px) skewX(3deg); }
+  22%  { transform: translate(-5px, -1px); }
+  23%  { transform: translate(0); }
+  60%  { transform: translate(0); }
+  61%  { transform: translate(-7px, 1px) skewX(-2deg); }
+  62%  { transform: translate(4px, 2px); }
+  63%  { transform: translate(0); }
+  88%  { transform: translate(0); }
+  89%  { transform: translate(5px, -2px); }
+  90%  { transform: translate(-3px, 1px) skewX(1deg); }
+  91%  { transform: translate(0); }
   100% { transform: translate(0); }
 }
 

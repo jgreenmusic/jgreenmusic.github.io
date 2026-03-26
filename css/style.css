@@ -81,7 +81,7 @@ body {
   background-color: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans);
-  font-size: 1.0625rem;
+  font-size: 1.15rem;
   line-height: 1.8;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -142,7 +142,7 @@ h1, h2, h3, h4 {
 }
 
 .section-heading {
-  font-size: clamp(0.7rem, 2vw, 0.8rem);
+  font-size: clamp(0.85rem, 2vw, 1rem);
   font-family: var(--font-mono);
   font-weight: 400;
   letter-spacing: 0.25em;
@@ -311,7 +311,7 @@ h1, h2, h3, h4 {
 
 .hero-subtitle {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.85rem;
   letter-spacing: 0.35em;
   text-transform: uppercase;
   color: var(--fg-muted);
@@ -330,7 +330,7 @@ h1, h2, h3, h4 {
 
 .hero-tagline {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.9rem;
   letter-spacing: 0.2em;
   color: var(--fg-muted);
 }
@@ -350,13 +350,15 @@ h1, h2, h3, h4 {
 
 .glitch::before {
   color: #a855f7;
-  clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+  clip-path: polygon(0 0, 100% 0, 100% 55%, 0 55%);
+  mix-blend-mode: screen;
   animation: glitch-top 3.5s infinite linear alternate-reverse;
 }
 
 .glitch::after {
   color: #eab308;
-  clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+  clip-path: polygon(0 45%, 100% 45%, 100% 100%, 0 100%);
+  mix-blend-mode: screen;
   animation: glitch-bot 2.5s infinite linear alternate-reverse;
 }
 

@@ -12,11 +12,11 @@
   const NAV_OFFSET            = 70;
 
   const SAMPLES = [
-    { id: 'again',     src: 'assets/audio/samples/again.wav',    type: 'sine',     freq: 110, detune: 0   },
-    { id: 'limitless', src: 'assets/audio/samples/limitless.wav',type: 'triangle', freq: 165, detune: 7   },
-    { id: 'vestige',   src: 'assets/audio/samples/vestige.wav',  type: 'sawtooth', freq: 220, detune: -5  },
-    { id: 'synapses',  src: 'assets/audio/samples/synapses.wav', type: 'sine',     freq: 73,  detune: 12  },
-    { id: 'noumenics', src: 'assets/audio/samples/noumenics.wav',type: 'triangle', freq: 294, detune: -3  },
+    { id: 'again',     src: 'assets/audio/samples/again.mp3',    type: 'sine',     freq: 110, detune: 0   },
+    { id: 'limitless', src: 'assets/audio/samples/limitless.mp3',type: 'triangle', freq: 165, detune: 7   },
+    { id: 'vestige',   src: 'assets/audio/samples/vestige.mp3',  type: 'sawtooth', freq: 220, detune: -5  },
+    { id: 'synapses',  src: 'assets/audio/samples/synapses.mp3', type: 'sine',     freq: 73,  detune: 12  },
+    { id: 'noumenics', src: 'assets/audio/samples/noumenics.mp3',type: 'triangle', freq: 294, detune: -3  },
   ];
 
   const NOTIFICATIONS = [

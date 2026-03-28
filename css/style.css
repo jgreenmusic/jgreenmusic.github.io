@@ -971,7 +971,49 @@ h1, h2, h3, h4 {
 
 
 /* ----------------------------------------------------------------
-  11. CONTACT
+  11. MEDIA
+---------------------------------------------------------------- */
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.media-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.4rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  transition:
+    color 220ms var(--bounce),
+    background-color 220ms var(--bounce),
+    border-color 200ms ease,
+    transform 220ms var(--bounce),
+    box-shadow 200ms ease;
+}
+
+.media-link:hover {
+  transform: scale(1.04) translateY(-3px);
+}
+
+li:nth-child(1) .media-link:hover { color: var(--bg); background: var(--accent-green);  border-color: var(--accent-green);  box-shadow: 0 0 22px rgba(74, 222, 128, 0.4); }
+li:nth-child(2) .media-link:hover { color: var(--bg); background: var(--accent-orange); border-color: var(--accent-orange); box-shadow: 0 0 22px rgba(251, 146, 60, 0.4); }
+li:nth-child(3) .media-link:hover { color: var(--bg); background: var(--accent);         border-color: var(--accent);         box-shadow: 0 0 22px rgba(185, 126, 248, 0.4); }
+li:nth-child(4) .media-link:hover { color: var(--bg); background: var(--accent-gold);   border-color: var(--accent-gold);   box-shadow: 0 0 22px rgba(251, 191, 36, 0.4); }
+li:nth-child(5) .media-link:hover { color: var(--bg); background: var(--accent-green);  border-color: var(--accent-green);  box-shadow: 0 0 22px rgba(74, 222, 128, 0.4); }
+li:nth-child(6) .media-link:hover { color: var(--bg); background: var(--accent);         border-color: var(--accent);         box-shadow: 0 0 22px rgba(185, 126, 248, 0.4); }
+
+
+/* ----------------------------------------------------------------
+  12. CONTACT (social links only)
 ---------------------------------------------------------------- */
 .contact-content {
   max-width: 520px;
@@ -1135,5 +1177,10 @@ h1, h2, h3, h4 {
   /* Press */
   .press-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* Media */
+  .media-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

@@ -1084,6 +1084,160 @@ li:nth-child(6) .media-link:hover { color: var(--bg); background: var(--accent);
 
 
 /* ----------------------------------------------------------------
+  EXPERIENCE — Notification Panel Remixer
+---------------------------------------------------------------- */
+#xp-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 99998;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 340px;
+  pointer-events: none;
+}
+
+.xp-card {
+  pointer-events: auto;
+  background: rgba(13, 10, 26, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(185, 126, 248, 0.25);
+  border-radius: 16px;
+  overflow: hidden;
+  transform: translateY(-12px) scale(0.96);
+  opacity: 0;
+  transition: transform 380ms var(--bounce), opacity 280ms ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(185, 126, 248, 0.08);
+}
+
+.xp-card.xp-visible {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.xp-card.xp-reveal {
+  border-color: rgba(251, 191, 36, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 24px rgba(251, 191, 36, 0.15);
+}
+
+.xp-card-inner {
+  padding: 0.85rem 1rem;
+}
+
+.xp-header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.4rem;
+}
+
+.xp-icon {
+  font-size: 0.75rem;
+  color: var(--accent);
+  width: 18px;
+  text-align: center;
+}
+
+.xp-reveal .xp-icon {
+  color: var(--accent-gold);
+}
+
+.xp-app {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  flex: 1;
+}
+
+.xp-time {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--fg-subtle);
+  margin-left: auto;
+}
+
+.xp-close {
+  background: none;
+  border: none;
+  color: var(--fg-subtle);
+  font-size: 0.6rem;
+  cursor: pointer;
+  padding: 0 0 0 0.4rem;
+  line-height: 1;
+  transition: color var(--ease);
+}
+
+.xp-close:hover {
+  color: var(--fg-muted);
+}
+
+.xp-message {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--fg);
+  margin-bottom: 0.75rem;
+}
+
+.xp-reveal .xp-message {
+  color: var(--accent-gold);
+}
+
+.xp-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.xp-btn {
+  flex: 1;
+  padding: 0.3rem 0.6rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: background-color 180ms var(--bounce), color 180ms ease, transform 180ms var(--bounce), border-color 180ms ease;
+}
+
+.xp-btn:hover {
+  background-color: rgba(185, 126, 248, 0.15);
+  border-color: rgba(185, 126, 248, 0.4);
+  color: var(--fg);
+  transform: scale(1.05);
+}
+
+.xp-reveal .xp-btn:last-child {
+  background-color: rgba(251, 191, 36, 0.12);
+  border-color: rgba(251, 191, 36, 0.4);
+  color: var(--accent-gold);
+}
+
+.xp-reveal .xp-btn:last-child:hover {
+  background-color: var(--accent-gold);
+  color: var(--bg);
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.5);
+}
+
+@media (max-width: 768px) {
+  #xp-container {
+    top: auto;
+    bottom: 1rem;
+    right: 0.75rem;
+    left: 0.75rem;
+    width: auto;
+  }
+}
+
+
+/* ----------------------------------------------------------------
   12. FOOTER
 ---------------------------------------------------------------- */
 .site-footer {

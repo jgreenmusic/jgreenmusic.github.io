@@ -96,8 +96,17 @@
     masterGain = audioCtx.createGain();
     masterGain.gain.value = 0.8;
 
-    // Main playback path: masterGain → destination (clean, no middleman)
-    masterGain.connect(audioCtx.destination);
+    // Compressor prevents clipping as layers stack up
+    const compressor = audioCtx.createDynamicsCompressor();
+    compressor.threshold.value = -18;
+    compressor.knee.value      = 10;
+    compressor.ratio.value     = 6;
+    compressor.attack.value    = 0.003;
+    compressor.release.value   = 0.25;
+
+    // Main playback path: masterGain → compressor → destination
+    masterGain.connect(compressor);
+    compressor.connect(audioCtx.destination);
 
     // Parallel recording tap using ScriptProcessorNode (mono, 1 channel)
     recorder = audioCtx.createScriptProcessor(4096, 1, 1);
@@ -128,7 +137,7 @@
     audioCtx.resume().then(() => {
       const sample    = SAMPLES.find(s => s.id === sampleId);
       if (!sample) return;
-      const targetVol = loud ? 0.45 : 0.18;
+      const targetVol = loud ? 0.22 : 0.08;
 
       fetch(sample.src)
         .then(r => { if (!r.ok) throw new Error('missing'); return r.arrayBuffer(); })
@@ -168,8 +177,8 @@
 
     const filter = audioCtx.createBiquadFilter();
     filter.type            = 'lowpass';
-    filter.frequency.value = 400 + Math.random() * 600;
-    filter.Q.value         = 2;
+    filter.frequency.value = 280 + Math.random() * 320;
+    filter.Q.value         = 4;
 
     const gain = audioCtx.createGain();
     gain.gain.setValueAtTime(0, audioCtx.currentTime);

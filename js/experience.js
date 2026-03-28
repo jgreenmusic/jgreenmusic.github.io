@@ -1,25 +1,16 @@
 /* ================================================================
   EXPERIENCE.JS — Notification Panel Remixer
-
-  Users unknowingly remix Julian Green's music by interacting
-  with what appears to be browser/phone notifications.
-  Every action layers real-time audio.
-  A final notification reveals the composition and offers WAV download.
 ================================================================ */
 
 (function () {
   'use strict';
 
-  // ----------------------------------------------------------------
-  // Config
-  // ----------------------------------------------------------------
-  const TRIGGER_DELAY         = 20000;  // ms before first notification
-  const NOTIFICATION_INTERVAL = 7500;   // ms between notifications
-  const CARD_W                = 320;    // approximate card width  (px)
-  const CARD_H                = 155;    // approximate card height (px)
-  const NAV_OFFSET            = 70;     // clear the fixed nav bar
+  const TRIGGER_DELAY         = 20000;
+  const NOTIFICATION_INTERVAL = 7500;
+  const CARD_W                = 320;
+  const CARD_H                = 155;
+  const NAV_OFFSET            = 70;
 
-  // Sample paths — drop real files into assets/audio/samples/ to activate
   const SAMPLES = [
     { id: 'again',     src: 'assets/audio/samples/again.wav',    type: 'sine',     freq: 110, detune: 0   },
     { id: 'limitless', src: 'assets/audio/samples/limitless.wav',type: 'triangle', freq: 165, detune: 7   },
@@ -30,44 +21,44 @@
 
   const NOTIFICATIONS = [
     {
-      app:     'Signal',
-      icon:    '◈',
-      message: 'Unknown audio source detected on this page.',
-      actions: ['Dismiss', 'Allow'],
-      sample:  'again',
-      loudOn:  'Allow',
+      app:    'Signal',
+      icon:   '◈',
+      message:'Unknown audio source detected on this page.',
+      actions:['Dismiss', 'Allow'],
+      sample: 'again',
+      loudOn: 'Allow',
     },
     {
-      app:     'Memory',
-      icon:    '◎',
-      message: 'Fragment recovered · duration 00:00:03',
-      actions: ['Ignore', 'Recover'],
-      sample:  'limitless',
-      loudOn:  'Recover',
+      app:    'Memory',
+      icon:   '◎',
+      message:'Fragment recovered · duration 00:00:03',
+      actions:['Ignore', 'Recover'],
+      sample: 'limitless',
+      loudOn: 'Recover',
     },
     {
-      app:     'Process',
-      icon:    '⟁',
-      message: 'Background audio reconstruction running.',
-      actions: ['Stop', 'Continue'],
-      sample:  'vestige',
-      loudOn:  'Continue',
+      app:    'Process',
+      icon:   '⟁',
+      message:'Background audio reconstruction running.',
+      actions:['Stop', 'Continue'],
+      sample: 'vestige',
+      loudOn: 'Continue',
     },
     {
-      app:     'Unknown',
-      icon:    '▣',
-      message: 'Something is being assembled without your input.',
-      actions: ['Block', 'Allow'],
-      sample:  'synapses',
-      loudOn:  'Allow',
+      app:    'Unknown',
+      icon:   '▣',
+      message:'Something is being assembled without your input.',
+      actions:['Block', 'Allow'],
+      sample: 'synapses',
+      loudOn: 'Allow',
     },
     {
-      app:     'Cortex',
-      icon:    '⬡',
-      message: 'Pattern recognition complete. 5 layers identified.',
-      actions: ['Delete', 'Keep'],
-      sample:  'noumenics',
-      loudOn:  'Keep',
+      app:    'Cortex',
+      icon:   '⬡',
+      message:'Pattern recognition complete. 5 layers identified.',
+      actions:['Delete', 'Keep'],
+      sample: 'noumenics',
+      loudOn: 'Keep',
     },
     {
       app:      'Archive',
@@ -84,58 +75,60 @@
   // ----------------------------------------------------------------
   // State
   // ----------------------------------------------------------------
-  let audioCtx        = null;
-  let masterGain      = null;
-  let scriptProcessor = null;
-  let recordedChunks  = [];
-  let isRecording     = false;
-  let notifIndex      = 0;
-  let hasStarted      = false;
-  let container       = null;
-  let usedZones       = [];
+  let audioCtx       = null;
+  let masterGain     = null;
+  let recorder       = null;
+  let recordedChunks = [];
+  let isRecording    = false;
+  let notifIndex     = 0;
+  let hasStarted     = false;
+  let container      = null;
+  let usedZones      = [];
 
 
   // ----------------------------------------------------------------
-  // Audio — manual PCM capture → WAV export
+  // Audio — AudioContext created on first user gesture
   // ----------------------------------------------------------------
   function initAudio() {
     if (audioCtx) return;
+
     audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
     masterGain = audioCtx.createGain();
     masterGain.gain.value = 0.8;
 
-    // ScriptProcessorNode captures stereo PCM for WAV encoding
-    scriptProcessor = audioCtx.createScriptProcessor(4096, 2, 2);
-    scriptProcessor.onaudioprocess = (e) => {
+    // Main playback path: masterGain → destination (clean, no middleman)
+    masterGain.connect(audioCtx.destination);
+
+    // Parallel recording tap using ScriptProcessorNode (mono, 1 channel)
+    recorder = audioCtx.createScriptProcessor(4096, 1, 1);
+    recorder.onaudioprocess = (e) => {
       if (!isRecording) return;
-      // Copy input → output (pass-through) and record
-      const L = new Float32Array(e.inputBuffer.getChannelData(0));
-      const R = new Float32Array(e.inputBuffer.getChannelData(1));
-      e.outputBuffer.getChannelData(0).set(L);
-      e.outputBuffer.getChannelData(1).set(R);
-      recordedChunks.push([L, R]);
+      try {
+        recordedChunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+        // Pass silence to output — this channel is just for capture
+        e.outputBuffer.getChannelData(0).fill(0);
+      } catch (_) {}
     };
 
-    masterGain.connect(scriptProcessor);
-    scriptProcessor.connect(audioCtx.destination);
-    isRecording = true;
-  }
+    // Tap the master gain into the recorder; output to a tiny gain to keep graph alive
+    const tap = audioCtx.createGain();
+    tap.gain.value = 0.001; // near-silent, just keeps the node active
+    masterGain.connect(recorder);
+    recorder.connect(tap);
+    tap.connect(audioCtx.destination);
 
-  function resumeAndRun(fn) {
-    if (!audioCtx) initAudio();
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume().then(fn);
-    } else {
-      fn();
-    }
+    isRecording = true;
   }
 
   function triggerSample(sampleId, loud) {
     if (!sampleId) return;
-    resumeAndRun(() => {
-      const sample = SAMPLES.find(s => s.id === sampleId);
+
+    // Always init + resume inside a user-gesture callback
+    initAudio();
+    audioCtx.resume().then(() => {
+      const sample    = SAMPLES.find(s => s.id === sampleId);
       if (!sample) return;
-      const targetVol = loud ? 0.4 : 0.15;
+      const targetVol = loud ? 0.45 : 0.18;
 
       fetch(sample.src)
         .then(r => { if (!r.ok) throw new Error('missing'); return r.arrayBuffer(); })
@@ -152,102 +145,74 @@
 
     const gain = audioCtx.createGain();
     gain.gain.setValueAtTime(0, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.4);
+    gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.5);
 
-    const filter = audioCtx.createBiquadFilter();
-    filter.type            = 'bandpass';
-    filter.frequency.value = 900;
-    filter.Q.value         = 0.7;
-
-    src.connect(filter);
-    filter.connect(gain);
+    src.connect(gain);
     gain.connect(masterGain);
     src.start();
   }
 
   function playFallback(sample, vol) {
-    const osc = audioCtx.createOscillator();
-    osc.type            = sample.type;
+    const osc       = audioCtx.createOscillator();
+    osc.type        = sample.type;
     osc.frequency.value = sample.freq;
     osc.detune.value    = sample.detune;
 
+    // Slow LFO for movement
     const lfo     = audioCtx.createOscillator();
-    lfo.frequency.value = 0.15 + Math.random() * 0.25;
+    lfo.frequency.value = 0.12 + Math.random() * 0.2;
     const lfoGain = audioCtx.createGain();
-    lfoGain.gain.value = 22;
+    lfoGain.gain.value = 15;
     lfo.connect(lfoGain);
     lfoGain.connect(osc.frequency);
 
     const filter = audioCtx.createBiquadFilter();
     filter.type            = 'lowpass';
-    filter.frequency.value = 500 + Math.random() * 500;
-    filter.Q.value         = 2.5;
+    filter.frequency.value = 400 + Math.random() * 600;
+    filter.Q.value         = 2;
 
     const gain = audioCtx.createGain();
     gain.gain.setValueAtTime(0, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.4);
-
-    const reverb = makeReverb(2);
+    gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.5);
 
     osc.connect(filter);
-    filter.connect(reverb);
     filter.connect(gain);
-    reverb.connect(gain);
     gain.connect(masterGain);
 
     osc.start();
     lfo.start();
   }
 
-  function makeReverb(secs) {
-    const node    = audioCtx.createConvolver();
-    const rate    = audioCtx.sampleRate;
-    const len     = rate * secs;
-    const impulse = audioCtx.createBuffer(2, len, rate);
-    for (let ch = 0; ch < 2; ch++) {
-      const d = impulse.getChannelData(ch);
-      for (let i = 0; i < len; i++) {
-        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.5);
-      }
-    }
-    node.buffer = impulse;
-    return node;
-  }
-
 
   // ----------------------------------------------------------------
-  // WAV encoder
+  // WAV encoder (mono, 16-bit PCM)
   // ----------------------------------------------------------------
   function encodeWAV(chunks, sampleRate) {
-    const numCh      = 2;
-    const totalFrames = chunks.reduce((n, c) => n + c[0].length, 0);
-    const byteLen    = 44 + totalFrames * numCh * 2;
-    const buffer     = new ArrayBuffer(byteLen);
-    const view       = new DataView(buffer);
+    const total  = chunks.reduce((n, c) => n + c.length, 0);
+    const buffer = new ArrayBuffer(44 + total * 2);
+    const view   = new DataView(buffer);
 
-    function str(offset, s) {
-      for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i));
-    }
+    function str(off, s) { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); }
 
     str(0,  'RIFF');
-    view.setUint32(4,  byteLen - 8,              true);
+    view.setUint32(4,  36 + total * 2,  true);
     str(8,  'WAVE');
     str(12, 'fmt ');
-    view.setUint32(16, 16,                        true);
-    view.setUint16(20, 1,                         true); // PCM
-    view.setUint16(22, numCh,                     true);
-    view.setUint32(24, sampleRate,                true);
-    view.setUint32(28, sampleRate * numCh * 2,    true);
-    view.setUint16(32, numCh * 2,                 true);
-    view.setUint16(34, 16,                        true);
+    view.setUint32(16, 16,              true);
+    view.setUint16(20, 1,               true); // PCM
+    view.setUint16(22, 1,               true); // mono
+    view.setUint32(24, sampleRate,      true);
+    view.setUint32(28, sampleRate * 2,  true);
+    view.setUint16(32, 2,               true);
+    view.setUint16(34, 16,              true);
     str(36, 'data');
-    view.setUint32(40, totalFrames * numCh * 2,   true);
+    view.setUint32(40, total * 2,       true);
 
-    let offset = 44;
-    chunks.forEach(([L, R]) => {
-      for (let i = 0; i < L.length; i++) {
-        view.setInt16(offset, Math.max(-1, Math.min(1, L[i])) * 0x7FFF, true); offset += 2;
-        view.setInt16(offset, Math.max(-1, Math.min(1, R[i])) * 0x7FFF, true); offset += 2;
+    let off = 44;
+    chunks.forEach(chunk => {
+      for (let i = 0; i < chunk.length; i++) {
+        view.setInt16(off, Math.max(-1, Math.min(1, chunk[i])) * 0x7FFF, true);
+        off += 2;
       }
     });
 
@@ -255,6 +220,7 @@
   }
 
   function downloadWAV() {
+    if (!audioCtx || recordedChunks.length === 0) return;
     isRecording = false;
     const wav  = encodeWAV(recordedChunks, audioCtx.sampleRate);
     const blob = new Blob([wav], { type: 'audio/wav' });
@@ -270,28 +236,27 @@
 
 
   // ----------------------------------------------------------------
-  // Positioning — spread cards around the viewport
+  // Positioning
   // ----------------------------------------------------------------
   const ZONES = [
-    { xFn: () => rand(16, 28),  yFn: () => rand(12, 28)  }, // top-left
-    { xFn: () => rand(55, 70),  yFn: () => rand(12, 28)  }, // top-right
-    { xFn: () => rand(16, 28),  yFn: () => rand(55, 72)  }, // bottom-left
-    { xFn: () => rand(55, 70),  yFn: () => rand(55, 72)  }, // bottom-right
-    { xFn: () => rand(35, 50),  yFn: () => rand(30, 50)  }, // center
-    { xFn: () => rand(16, 28),  yFn: () => rand(35, 50)  }, // mid-left
+    { x: [8,  22], y: [10, 25] },   // top-left
+    { x: [55, 70], y: [10, 25] },   // top-right
+    { x: [8,  22], y: [55, 72] },   // bottom-left
+    { x: [55, 70], y: [55, 72] },   // bottom-right
+    { x: [35, 50], y: [30, 50] },   // center
+    { x: [8,  22], y: [35, 48] },   // mid-left
   ];
 
-  function rand(min, max) { return min + Math.random() * (max - min); }
+  function rand(a, b) { return a + Math.random() * (b - a); }
 
-  function nextZone() {
+  function nextPos() {
     if (usedZones.length >= ZONES.length) usedZones = [];
-    const available = ZONES.filter((_, i) => !usedZones.includes(i));
-    const zoneIndex = ZONES.indexOf(available[Math.floor(Math.random() * available.length)]);
-    usedZones.push(zoneIndex);
-    const zone = ZONES[zoneIndex];
-    // Convert percentages to px, clamped within viewport
-    const x = Math.min((zone.xFn() / 100) * window.innerWidth,  window.innerWidth  - CARD_W - 16);
-    const y = Math.min((zone.yFn() / 100) * window.innerHeight, window.innerHeight - CARD_H - 16);
+    const available = ZONES.map((z, i) => i).filter(i => !usedZones.includes(i));
+    const pick      = available[Math.floor(Math.random() * available.length)];
+    usedZones.push(pick);
+    const z = ZONES[pick];
+    const x = Math.min((rand(z.x[0], z.x[1]) / 100) * window.innerWidth,  window.innerWidth  - CARD_W - 12);
+    const y = Math.min((rand(z.y[0], z.y[1]) / 100) * window.innerHeight, window.innerHeight - CARD_H - 12);
     return { x: Math.max(12, x), y: Math.max(NAV_OFFSET + 8, y) };
   }
 
@@ -306,7 +271,7 @@
   }
 
   function showNotification(notif) {
-    const pos  = nextZone();
+    const pos  = nextPos();
     const card = document.createElement('div');
     card.className = 'xp-card' + (notif.isReveal ? ' xp-reveal' : '');
     card.style.left = pos.x + 'px';
@@ -330,13 +295,11 @@
     container.appendChild(card);
     requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add('xp-visible')));
 
-    // Close ✕ — quietly layers audio
     card.querySelector('.xp-close').addEventListener('click', () => {
       triggerSample(notif.sample, false);
       dismiss(card);
     });
 
-    // Action buttons — every action layers audio (loud or quiet)
     card.querySelectorAll('.xp-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const action = btn.textContent.trim();
@@ -364,23 +327,16 @@
     if (notifIndex >= NOTIFICATIONS.length) return;
     showNotification(NOTIFICATIONS[notifIndex]);
     notifIndex++;
-    if (notifIndex < NOTIFICATIONS.length) {
-      setTimeout(next, NOTIFICATION_INTERVAL);
-    }
+    if (notifIndex < NOTIFICATIONS.length) setTimeout(next, NOTIFICATION_INTERVAL);
   }
 
   function start() {
     if (hasStarted) return;
     hasStarted = true;
     buildContainer();
-    initAudio();
+    // Do NOT init audio here — wait for first button click (user gesture required)
     next();
   }
-
-  // Resume suspended context on any interaction
-  document.addEventListener('click', () => {
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-  });
 
   setTimeout(start, TRIGGER_DELAY);
 

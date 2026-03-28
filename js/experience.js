@@ -84,6 +84,11 @@
   let hasStarted     = false;
   let container      = null;
   let usedZones      = [];
+  let activeSources     = [];   // tracks every OscillatorNode + AudioBufferSourceNode
+  let isStopped         = false; // set true on fadeout — blocks all new audio creation
+  let liveCards         = 0;    // how many notification cards are currently on screen
+  let interactedCount   = 0;    // how many sample notifications the user has acted on
+  let revealShown       = false; // has the Archive card been shown yet
 
 
   // ----------------------------------------------------------------
@@ -130,11 +135,12 @@
   }
 
   function triggerSample(sampleId, loud) {
-    if (!sampleId) return;
+    if (!sampleId || isStopped) return;
 
     // Always init + resume inside a user-gesture callback
     initAudio();
     audioCtx.resume().then(() => {
+      if (isStopped) return;
       const sample    = SAMPLES.find(s => s.id === sampleId);
       if (!sample) return;
       const targetVol = loud ? 0.22 : 0.08;
@@ -142,8 +148,8 @@
       fetch(sample.src)
         .then(r => { if (!r.ok) throw new Error('missing'); return r.arrayBuffer(); })
         .then(buf => audioCtx.decodeAudioData(buf))
-        .then(decoded => playBuffer(decoded, targetVol))
-        .catch(() => playFallback(sample, targetVol));
+        .then(decoded => { if (!isStopped) playBuffer(decoded, targetVol); })
+        .catch(() => { if (!isStopped) playFallback(sample, targetVol); });
     });
   }
 
@@ -159,37 +165,82 @@
     src.connect(gain);
     gain.connect(masterGain);
     src.start();
+    activeSources.push(src);
+  }
+
+  function makeDistortionCurve(amount) {
+    const n      = 512;
+    const curve  = new Float32Array(n);
+    const deg    = Math.PI / 180;
+    for (let i = 0; i < n; i++) {
+      const x    = (i * 2) / n - 1;
+      curve[i]   = ((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));
+    }
+    return curve;
   }
 
   function playFallback(sample, vol) {
+    const now = audioCtx.currentTime;
+
     const osc       = audioCtx.createOscillator();
     osc.type        = sample.type;
     osc.frequency.value = sample.freq;
     osc.detune.value    = sample.detune;
 
+    // Pitch glitch — random stutter jumps scheduled ahead
+    for (let i = 0; i < 8; i++) {
+      const t      = now + 1 + i * (0.4 + Math.random() * 1.2);
+      const jitter = (Math.random() - 0.5) * sample.freq * 1.8;
+      osc.frequency.setValueAtTime(sample.freq + jitter, t);
+      osc.frequency.linearRampToValueAtTime(sample.freq, t + 0.08 + Math.random() * 0.15);
+    }
+
     // Slow LFO for movement
     const lfo     = audioCtx.createOscillator();
-    lfo.frequency.value = 0.12 + Math.random() * 0.2;
+    lfo.frequency.value = 0.08 + Math.random() * 0.35;
     const lfoGain = audioCtx.createGain();
-    lfoGain.gain.value = 15;
+    lfoGain.gain.value = 28 + Math.random() * 40;
     lfo.connect(lfoGain);
     lfoGain.connect(osc.frequency);
 
+    // Fast tremolo LFO — stutter amplitude
+    const tremLfo     = audioCtx.createOscillator();
+    tremLfo.frequency.value = 6 + Math.random() * 14;
+    const tremGain    = audioCtx.createGain();
+    tremGain.gain.value = 0.35;
+    tremLfo.connect(tremGain);
+
+    // Bandpass filter for gritty resonance
     const filter = audioCtx.createBiquadFilter();
-    filter.type            = 'lowpass';
-    filter.frequency.value = 280 + Math.random() * 320;
-    filter.Q.value         = 4;
+    filter.type            = 'bandpass';
+    filter.frequency.value = 220 + Math.random() * 600;
+    filter.Q.value         = 6 + Math.random() * 8;
+
+    // WaveShaper distortion
+    const shaper   = audioCtx.createWaveShaper();
+    shaper.curve   = makeDistortionCurve(80 + Math.random() * 120);
+    shaper.oversample = '4x';
+
+    // Post-distortion lowpass to tame harsh highs
+    const shelf = audioCtx.createBiquadFilter();
+    shelf.type            = 'lowpass';
+    shelf.frequency.value = 1800 + Math.random() * 800;
 
     const gain = audioCtx.createGain();
-    gain.gain.setValueAtTime(0, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.5);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(vol, now + 0.5);
+    tremGain.connect(gain.gain); // tremolo modulates gain directly
 
     osc.connect(filter);
-    filter.connect(gain);
+    filter.connect(shaper);
+    shaper.connect(shelf);
+    shelf.connect(gain);
     gain.connect(masterGain);
 
     osc.start();
     lfo.start();
+    tremLfo.start();
+    activeSources.push(osc, lfo, tremLfo);
   }
 
 
@@ -241,6 +292,39 @@
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }
+
+
+  function stopAllAudio() {
+    isStopped   = true;
+    isRecording = false;
+    activeSources.forEach(s => { try { s.stop(); } catch (_) {} });
+    activeSources = [];
+    if (audioCtx) {
+      audioCtx.close();
+      audioCtx   = null;
+      masterGain = null;
+    }
+  }
+
+  function fadeOutAndStop() {
+    console.log('[XP] fadeOutAndStop called — audioCtx:', audioCtx ? audioCtx.state : 'null');
+    if (isStopped) return;
+    if (!audioCtx || !masterGain) { stopAllAudio(); return; }
+
+    isStopped   = true;
+    isRecording = false;
+
+    const now = audioCtx.currentTime;
+    masterGain.gain.cancelScheduledValues(now);
+    masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+    masterGain.gain.linearRampToValueAtTime(0, now + 2.5);
+
+    const sources = activeSources.splice(0);
+    setTimeout(() => {
+      sources.forEach(s => { try { s.stop(); } catch (_) {} });
+      if (audioCtx) { audioCtx.close(); audioCtx = null; masterGain = null; }
+    }, 2700);
   }
 
 
@@ -301,12 +385,34 @@
       </div>
     `;
 
+    if (notif.isReveal) revealShown = true;
+    liveCards++;
     container.appendChild(card);
     requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add('xp-visible')));
 
-    card.querySelector('.xp-close').addEventListener('click', () => {
-      triggerSample(notif.sample, false);
+    function maybeShowReveal() {
+      // All 5 sample cards interacted with and Archive not yet shown → show it now
+      const sampleCount = NOTIFICATIONS.filter(n => !n.isReveal).length;
+      if (!revealShown && interactedCount >= sampleCount) {
+        const reveal = NOTIFICATIONS.find(n => n.isReveal);
+        if (reveal) showNotification(reveal);
+      }
+    }
+
+    function closeCard() {
+      liveCards--;
       dismiss(card);
+    }
+
+    card.querySelector('.xp-close').addEventListener('click', () => {
+      if (notif.isReveal) {
+        fadeOutAndStop();
+      } else {
+        triggerSample(notif.sample, false);
+        interactedCount++;
+        maybeShowReveal();
+      }
+      closeCard();
     });
 
     card.querySelectorAll('.xp-btn').forEach(btn => {
@@ -314,11 +420,14 @@
         const action = btn.textContent.trim();
         if (notif.isReveal) {
           if (action === 'Download') downloadWAV();
-          dismiss(card);
+          fadeOutAndStop();
+          closeCard();
           return;
         }
         triggerSample(notif.sample, action === notif.loudOn);
-        dismiss(card);
+        interactedCount++;
+        maybeShowReveal();
+        closeCard();
       });
     });
   }

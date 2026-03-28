@@ -25,7 +25,6 @@
       icon:   '◈',
       message:'Unknown audio source detected on this page.',
       actions:['Dismiss', 'Allow'],
-      sample: 'again',
       loudOn: 'Allow',
     },
     {
@@ -33,7 +32,6 @@
       icon:   '◎',
       message:'Fragment recovered · duration 00:00:03',
       actions:['Ignore', 'Recover'],
-      sample: 'limitless',
       loudOn: 'Recover',
     },
     {
@@ -41,7 +39,6 @@
       icon:   '⟁',
       message:'Background audio reconstruction running.',
       actions:['Stop', 'Continue'],
-      sample: 'vestige',
       loudOn: 'Continue',
     },
     {
@@ -49,7 +46,6 @@
       icon:   '▣',
       message:'Something is being assembled without your input.',
       actions:['Block', 'Allow'],
-      sample: 'synapses',
       loudOn: 'Allow',
     },
     {
@@ -57,7 +53,6 @@
       icon:   '⬡',
       message:'Pattern recognition complete. 5 layers identified.',
       actions:['Delete', 'Keep'],
-      sample: 'noumenics',
       loudOn: 'Keep',
     },
     {
@@ -70,6 +65,17 @@
       isReveal: true,
     },
   ];
+
+  // Shuffle sample IDs and assign one to each non-reveal notification
+  (function assignSamples() {
+    const ids = SAMPLES.map(s => s.id);
+    for (let i = ids.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [ids[i], ids[j]] = [ids[j], ids[i]];
+    }
+    let s = 0;
+    NOTIFICATIONS.forEach(n => { if (!n.isReveal) n.sample = ids[s++]; });
+  }());
 
 
   // ----------------------------------------------------------------

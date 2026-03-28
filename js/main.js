@@ -1,5 +1,5 @@
 /* ================================================================
-  MAIN.JS — Electroacoustic Composer Website
+  MAIN.JS — Julian Green · Electroacoustic Composer
 ================================================================ */
 
 
@@ -13,7 +13,6 @@ const menuToggle  = document.getElementById('menu-toggle');
 const navMenu     = document.getElementById('nav-links');
 
 window.addEventListener('scroll', () => {
-  // Frosted glass effect on header after first scroll
   header.classList.toggle('scrolled', window.scrollY > 50);
   highlightActiveSection();
 }, { passive: true });
@@ -33,7 +32,6 @@ function highlightActiveSection() {
   });
 }
 
-// Run once on load to handle direct-link arrivals
 highlightActiveSection();
 
 
@@ -45,7 +43,6 @@ menuToggle.addEventListener('click', () => {
   menuToggle.setAttribute('aria-expanded', String(isOpen));
 });
 
-// Close menu when any nav link is tapped
 navMenu.querySelectorAll('.nav-link').forEach(link => {
   link.addEventListener('click', () => {
     navMenu.classList.remove('open');
@@ -64,7 +61,6 @@ filterTabs.forEach(tab => {
   tab.addEventListener('click', () => {
     const filter = tab.dataset.filter;
 
-    // Update tab state
     filterTabs.forEach(t => {
       t.classList.remove('active');
       t.setAttribute('aria-selected', 'false');
@@ -72,7 +68,6 @@ filterTabs.forEach(tab => {
     tab.classList.add('active');
     tab.setAttribute('aria-selected', 'true');
 
-    // Show / hide works
     workItems.forEach(item => {
       const visible = filter === 'all' || item.dataset.category === filter;
       item.classList.toggle('hidden', !visible);
@@ -89,39 +84,65 @@ if (yearEl) yearEl.textContent = new Date().getFullYear();
 
 
 // ----------------------------------------------------------------
-// GLITCH EFFECTS — ready to activate
-//
-// These are off by default. When you're ready to lean into the
-// glitch aesthetic, uncomment the block below.
-//
-// How to use:
-//   1. Add class="glitch-flicker" to any element you want to flicker.
-//   2. Uncomment this block.
-//   3. Tune CHANCE (0–1) and INTERVAL (ms) to taste.
+// Section headings: mirror text into data-text for glitch effect
 // ----------------------------------------------------------------
-/*
-const CHANCE   = 0.12;   // probability of glitch per interval
-const INTERVAL = 2200;   // ms between glitch attempts
+document.querySelectorAll('.section-heading').forEach(el => {
+  el.setAttribute('data-text', el.textContent.trim());
+});
+
+
+// ----------------------------------------------------------------
+// Scroll reveal — fade + slide up as elements enter the viewport
+// ----------------------------------------------------------------
+const revealEls = document.querySelectorAll(
+  '.event-item, .about-grid, .about-links, .contact-content'
+);
+
+revealEls.forEach((el, i) => {
+  el.setAttribute('data-reveal', '');
+  const delay = i % 4;
+  if (delay > 0) el.setAttribute('data-reveal-delay', String(delay));
+});
+
+const revealObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  },
+  { threshold: 0.08, rootMargin: '0px 0px -30px 0px' }
+);
+
+revealEls.forEach(el => revealObserver.observe(el));
+
+
+// ----------------------------------------------------------------
+// Glitch flicker — random distortion bursts on overview name & logo
+// ----------------------------------------------------------------
+const CHANCE   = 0.14;
+const INTERVAL = 2600;
 
 function maybeGlitch() {
-  document.querySelectorAll('.glitch-flicker').forEach(el => {
+  document.querySelectorAll('.overview-name, .nav-logo').forEach(el => {
     if (Math.random() > CHANCE) return;
 
-    const dx = (Math.random() - 0.5) * 6;
-    const dy = (Math.random() - 0.5) * 4;
-    const hue = Math.random() * 360;
+    const dx  = (Math.random() - 0.5) * 9;
+    const dy  = (Math.random() - 0.5) * 4;
+    const hue = Math.random() * 60 + 260; // purple-to-blue band
 
     el.style.transform  = `translate(${dx}px, ${dy}px)`;
-    el.style.filter     = `hue-rotate(${hue}deg) saturate(3)`;
-    el.style.textShadow = `${dx * -1}px 0 #ff0090, ${dx}px 0 #00ff9f`;
+    el.style.filter     = `hue-rotate(${hue}deg) saturate(5)`;
+    el.style.textShadow = `${-dx}px 0 rgba(185,126,248,0.9), ${dx}px 0 rgba(251,191,36,0.9)`;
 
     setTimeout(() => {
       el.style.transform  = '';
       el.style.filter     = '';
       el.style.textShadow = '';
-    }, 60 + Math.random() * 120);
+    }, 55 + Math.random() * 110);
   });
 }
 
 setInterval(maybeGlitch, INTERVAL);
-*/

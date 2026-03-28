@@ -13,7 +13,7 @@
   -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -24,14 +24,14 @@
   ============================================================ -->
   <header class="site-header" id="site-header">
     <nav class="nav">
-      <a href="#hero" class="nav-logo">Julian Green</a>
+      <a href="#overview" class="nav-logo">Julian Green</a>
 
       <ul class="nav-links" id="nav-links">
         <li><a href="#works"    class="nav-link">Works</a></li>
         <li><a href="#about"    class="nav-link">About</a></li>
-        <li><a href="#research" class="nav-link">Research</a></li>
+        <!-- <li><a href="#research" class="nav-link">Research</a></li> -->
         <li><a href="#events"   class="nav-link">Events</a></li>
-        <li><a href="#press"    class="nav-link">Press</a></li>
+        <!-- <li><a href="#press" class="nav-link">Press</a></li> -->
         <li><a href="#contact"  class="nav-link">Contact</a></li>
       </ul>
 
@@ -49,16 +49,16 @@
     <!-- ============================================================
       HERO
     ============================================================ -->
-    <section id="hero" class="hero">
-      <div class="hero-content">
-        <p class="hero-subtitle">Electroacoustic Composer &amp; Performer</p>
+    <section id="overview" class="overview">
+      <div class="overview-content">
+        <p class="overview-subtitle">Electroacoustic Composer &amp; Performer</p>
         <!--
           GLITCH: To enable the glitch split effect on your name,
           add class="glitch" and data-text="JULIAN GREEN" to the h1,
           then uncomment the .glitch rules in style.css.
         -->
-        <h1 class="hero-name glitch" data-text="Julian Green">Julian Green</h1>
-        <p class="hero-tagline">PhD Candidate · University of Oregon</p>
+        <h1 class="overview-name glitch" data-text="Julian Green">Julian Green</h1>
+        <p class="overview-tagline">PhD Candidate · University of Oregon</p>
       </div>
     </section>
 
@@ -171,9 +171,11 @@
               Oregon, working towards an assistantship.
             </p>
             <div class="about-links">
+              <!-- CV button hidden until file is ready
               <a href="assets/cv.pdf" class="btn" target="_blank" rel="noopener">
                 Download CV
               </a>
+              -->
             </div>
           </div>
         </div>
@@ -186,7 +188,7 @@
       Remove this section entirely if you prefer not to foreground
       your academic work. Add / remove interest items freely.
     ============================================================ -->
-    <section id="research" class="section">
+    <section id="research" class="section" style="display:none">
       <div class="container">
         <h2 class="section-heading">Research</h2>
 
@@ -247,7 +249,7 @@
               <time class="event-date" datetime="2026">2026</time>
               <div class="event-body">
                 <span class="event-title">Again — ICMC (International Computer Music Conference)</span>
-                <span class="event-venue"><!-- Add city/venue when confirmed --></span>
+                <span class="event-venue">Hamburg, Germany · May 10–17</span>
               </div>
             </li>
 
@@ -263,7 +265,7 @@
               <time class="event-date" datetime="2026">2026</time>
               <div class="event-body">
                 <span class="event-title">Again — SEAMUS National Conference</span>
-                <span class="event-venue"><!-- Add city/venue when confirmed --></span>
+                <span class="event-venue">San Antonio, TX</span>
               </div>
             </li>
             <!-- /EVENT ITEM -->
@@ -294,7 +296,7 @@
     <!-- ============================================================
       PRESS
     ============================================================ -->
-    <section id="press" class="section section--alt">
+    <section id="press" class="section section--alt" style="display:none">
       <div class="container">
         <h2 class="section-heading">Press</h2>
 
@@ -348,10 +350,14 @@
 
           <ul class="contact-links">
             <!-- Add or remove links as needed -->
-            <li><a href="https://soundcloud.com/yourprofile" target="_blank" rel="noopener">SoundCloud</a></li>
-            <li><a href="https://bandcamp.com/yourprofile"   target="_blank" rel="noopener">Bandcamp</a></li>
-            <li><a href="https://youtube.com/yourprofile"    target="_blank" rel="noopener">YouTube</a></li>
-            <li><a href="https://instagram.com/yourprofile"  target="_blank" rel="noopener">Instagram</a></li>
+            <li><a href="https://open.spotify.com/artist/1Yvt2Sqsv2YfFvhXUqDvrf" target="_blank" rel="noopener">Spotify</a></li>
+            <li><a href="https://on.soundcloud.com/b2k6gCINoP8Uv6ishK" target="_blank" rel="noopener">SoundCloud</a></li>
+            <li><a href="https://bandcamp.com/jurlanerngaming" target="_blank" rel="noopener">Bandcamp</a></li>
+            <li><a href="https://www.youtube.com/@juliangreenmusic" target="_blank" rel="noopener">YouTube</a></li>
+            <li><a href="https://www.instagram.com/poos1c/" target="_blank" rel="noopener">Instagram</a></li>
+            <li><a href="https://www.tiktok.com/@poosic_music" target="_blank" rel="noopener">TikTok</a></li>
+            <li><a href="https://www.twitch.tv/poosic" target="_blank" rel="noopener">Twitch</a></li>
+            <li><a href="https://www.facebook.com/juliangreen95" target="_blank" rel="noopener">Facebook</a></li>
           </ul>
         </div>
       </div>

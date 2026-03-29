@@ -33,6 +33,7 @@
       message:'A fragment has surfaced. It does not belong to this session.',
       actions:['Ignore', 'Recover'],
       loudOn: 'Recover',
+      glitch: true,
     },
     {
       app:    'Process',
@@ -47,6 +48,7 @@
       message:'You are being assembled. This is not a malfunction.',
       actions:['Block', 'Allow'],
       loudOn: 'Allow',
+      glitch: true,
     },
     {
       app:    'Cortex',
@@ -54,6 +56,7 @@
       message:'It knows your name. It has always known your name.',
       actions:['Delete', 'Keep'],
       loudOn: 'Keep',
+      glitch: true,
     },
     {
       app:      'Archive',
@@ -414,6 +417,7 @@
       if (notif.isReveal) {
         fadeOutAndStop();
       } else {
+        if (notif.glitch) triggerScreenGlitch();
         triggerSample(notif.sample, false);
         interactedCount++;
         maybeShowReveal();
@@ -430,6 +434,7 @@
           closeCard();
           return;
         }
+        if (notif.glitch) triggerScreenGlitch();
         triggerSample(notif.sample, action === notif.loudOn);
         interactedCount++;
         maybeShowReveal();
@@ -441,6 +446,108 @@
   function dismiss(card) {
     card.classList.remove('xp-visible');
     setTimeout(() => card && card.remove(), 400);
+  }
+
+
+  // ----------------------------------------------------------------
+  // Screen glitch — visual flash + noise burst on selected cards
+  // ----------------------------------------------------------------
+  let glitchStylesInjected = false;
+
+  function injectGlitchCSS() {
+    if (glitchStylesInjected) return;
+    glitchStylesInjected = true;
+    const s = document.createElement('style');
+    s.textContent = `
+      #xp-glitch-overlay {
+        position: fixed; inset: 0; pointer-events: none; z-index: 99998;
+        opacity: 0; mix-blend-mode: screen;
+      }
+      #xp-glitch-overlay.xp-go {
+        animation: xp-overlay-flash 0.48s steps(1) forwards;
+      }
+      @keyframes xp-overlay-flash {
+        0%   { opacity:0; }
+        6%   { opacity:1; background:rgba(240,60,60,0.12); transform:translate(4px,-2px); }
+        13%  { opacity:0; transform:none; }
+        20%  { opacity:0.8; background:rgba(185,126,248,0.18); transform:translate(-5px,1px) scaleY(1.002); }
+        27%  { opacity:0; transform:none; }
+        35%  { opacity:1; background:rgba(240,60,60,0.22); transform:translate(6px,0) skewX(-1.5deg); }
+        43%  { opacity:0.4; transform:skewX(1deg); }
+        55%  { opacity:0; transform:none; }
+        68%  { opacity:0.3; background:rgba(185,126,248,0.1); }
+        80%  { opacity:0; }
+        100% { opacity:0; }
+      }
+      body.xp-body-glitch {
+        animation: xp-body-corrupt 0.48s steps(2) forwards;
+      }
+      @keyframes xp-body-corrupt {
+        0%   { filter:none; }
+        14%  { filter:hue-rotate(80deg) contrast(1.5) saturate(2.5); }
+        28%  { filter:hue-rotate(-20deg) contrast(1.2) brightness(1.1); }
+        45%  { filter:saturate(4) brightness(1.3) hue-rotate(160deg); }
+        62%  { filter:hue-rotate(200deg) contrast(1.6); }
+        78%  { filter:hue-rotate(0deg) contrast(1.1); }
+        100% { filter:none; }
+      }
+    `;
+    document.head.appendChild(s);
+  }
+
+  function playGlitchNoise() {
+    try {
+      const ctx      = new (window.AudioContext || window.webkitAudioContext)();
+      const duration = 0.32;
+      const samples  = Math.ceil(ctx.sampleRate * duration);
+      const buf      = ctx.createBuffer(1, samples, ctx.sampleRate);
+      const data     = buf.getChannelData(0);
+      for (let i = 0; i < samples; i++) data[i] = Math.random() * 2 - 1;
+
+      const src    = ctx.createBufferSource();
+      src.buffer   = buf;
+
+      const bp     = ctx.createBiquadFilter();
+      bp.type      = 'bandpass';
+      bp.frequency.value = 2800 + Math.random() * 3500;
+      bp.Q.value   = 0.7;
+
+      const shaper = ctx.createWaveShaper();
+      shaper.curve = makeDistortionCurve(180);
+
+      const gain   = ctx.createGain();
+      const now    = ctx.currentTime;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.28, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+      src.connect(bp);
+      bp.connect(shaper);
+      shaper.connect(gain);
+      gain.connect(ctx.destination);
+      src.start();
+      src.onended = () => ctx.close();
+    } catch (_) {}
+  }
+
+  function triggerScreenGlitch() {
+    injectGlitchCSS();
+
+    const overlay = document.createElement('div');
+    overlay.id    = 'xp-glitch-overlay';
+    document.body.appendChild(overlay);
+
+    requestAnimationFrame(() => {
+      overlay.classList.add('xp-go');
+      document.body.classList.add('xp-body-glitch');
+    });
+
+    setTimeout(() => {
+      document.body.classList.remove('xp-body-glitch');
+      overlay.remove();
+    }, 520);
+
+    playGlitchNoise();
   }
 
 

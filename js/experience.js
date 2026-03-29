@@ -23,42 +23,42 @@
     {
       app:    'Signal',
       icon:   '◈',
-      message:'Unknown audio source detected on this page.',
-      actions:['Dismiss', 'Allow'],
+      message:'Something that should not be here has located this page.',
+      actions:['Deny', 'Allow'],
       loudOn: 'Allow',
     },
     {
       app:    'Memory',
       icon:   '◎',
-      message:'Fragment recovered · duration 00:00:03',
+      message:'A fragment has surfaced. It does not belong to this session.',
       actions:['Ignore', 'Recover'],
       loudOn: 'Recover',
     },
     {
       app:    'Process',
       icon:   '⟁',
-      message:'Background audio reconstruction running.',
+      message:'An unregistered process is listening. It has been listening since before you arrived.',
       actions:['Stop', 'Continue'],
       loudOn: 'Continue',
     },
     {
       app:    'Unknown',
       icon:   '▣',
-      message:'Something is being assembled without your input.',
+      message:'You are being assembled. This is not a malfunction.',
       actions:['Block', 'Allow'],
       loudOn: 'Allow',
     },
     {
       app:    'Cortex',
       icon:   '⬡',
-      message:'Pattern recognition complete. 5 layers identified.',
+      message:'It knows your name. It has always known your name.',
       actions:['Delete', 'Keep'],
       loudOn: 'Keep',
     },
     {
       app:      'Archive',
       icon:     '↓',
-      message:  'You just made something. It was assembled from fragments of music by Julian Green. Download it?',
+      message:  'The assembly is complete. You participated. Download what was made from you?',
       actions:  ['Discard', 'Download'],
       sample:   null,
       loudOn:   null,
@@ -416,6 +416,7 @@
       } else {
         triggerSample(notif.sample, false);
         interactedCount++;
+        speakFragment();
         maybeShowReveal();
       }
       closeCard();
@@ -432,6 +433,7 @@
         }
         triggerSample(notif.sample, action === notif.loudOn);
         interactedCount++;
+        speakFragment();
         maybeShowReveal();
         closeCard();
       });
@@ -441,6 +443,44 @@
   function dismiss(card) {
     card.classList.remove('xp-visible');
     setTimeout(() => card && card.remove(), 400);
+  }
+
+
+  // ----------------------------------------------------------------
+  // TTS — fragmented voice, spoken on each notification interaction
+  // Assembles into a message the visitor must piece together themselves.
+  // ----------------------------------------------------------------
+  const TTS_FRAGMENTS = [
+    'you opened the door',
+    'i have been watching',
+    'since before',
+    'you knew my name',
+    'i was already here',
+  ];
+  let ttsIndex = 0;
+
+  function speakFragment() {
+    if (!window.speechSynthesis || ttsIndex >= TTS_FRAGMENTS.length) return;
+    const text  = TTS_FRAGMENTS[ttsIndex++];
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate   = 0.72;
+    utter.pitch  = 0.18;
+    utter.volume = 0.55;
+
+    const assignVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const chosen = voices.find(v =>
+        /david|daniel|uk.*male|en.gb|fred|ralph/i.test(v.name)
+      ) || voices[0];
+      if (chosen) utter.voice = chosen;
+      window.speechSynthesis.speak(utter);
+    };
+
+    if (window.speechSynthesis.getVoices().length) {
+      assignVoice();
+    } else {
+      window.speechSynthesis.addEventListener('voiceschanged', assignVoice, { once: true });
+    }
   }
 
 

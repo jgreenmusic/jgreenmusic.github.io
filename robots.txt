@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+# the following path is not for you.
+# do not look.
+Disallow: /signal

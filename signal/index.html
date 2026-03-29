@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>signal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #000000;
+      --fg:       #c8f0c8;
+      --dim:      #4a7a4a;
+      --red:      #f05050;
+      --purple:   #b97ef8;
+      --cursor-w: 0.55ch;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Space Mono', 'Courier New', monospace;
+      font-size: clamp(12px, 1.5vw, 15px);
+      line-height: 1.75;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* scanlines */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 3px,
+        rgba(0,0,0,0.18) 3px,
+        rgba(0,0,0,0.18) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    #terminal {
+      max-width: 72ch;
+      margin: 0 auto;
+      padding: clamp(2rem, 6vw, 5rem) clamp(1rem, 4vw, 2rem);
+      min-height: 100vh;
+    }
+
+    .line {
+      display: block;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .line--dim     { color: var(--dim); }
+    .line--red     { color: var(--red); }
+    .line--purple  { color: var(--purple); }
+    .line--heading { color: #ffffff; font-weight: 700; letter-spacing: 0.08em; }
+    .line--blank   { display: block; height: 1.75em; }
+
+    /* blinking cursor */
+    .cursor {
+      display: inline-block;
+      width: var(--cursor-w);
+      height: 1.1em;
+      background: var(--fg);
+      vertical-align: text-bottom;
+      animation: blink 1.1s step-end infinite;
+    }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* glitch on heading */
+    .glitch {
+      position: relative;
+      display: inline-block;
+    }
+    .glitch::before,
+    .glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      overflow: hidden;
+    }
+    .glitch::before {
+      color: var(--red);
+      animation: glitch-a 4.3s infinite;
+      clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
+    }
+    .glitch::after {
+      color: var(--purple);
+      animation: glitch-b 4.3s infinite;
+      clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+    }
+    @keyframes glitch-a {
+      0%,90%,100% { transform: none; opacity: 0; }
+      91%         { transform: translate(-3px, 1px); opacity: 0.8; }
+      93%         { transform: translate(3px, -1px); opacity: 0.8; }
+      95%         { transform: none; opacity: 0; }
+    }
+    @keyframes glitch-b {
+      0%,88%,100% { transform: none; opacity: 0; }
+      89%         { transform: translate(4px, -2px); opacity: 0.7; }
+      92%         { transform: translate(-2px, 2px); opacity: 0.7; }
+      94%         { transform: none; opacity: 0; }
+    }
+
+    /* hidden input captures keypresses for the easter egg */
+    #ghost-input {
+      position: fixed;
+      opacity: 0;
+      pointer-events: none;
+      width: 1px;
+      height: 1px;
+    }
+
+    /* response line that appears after the easter egg */
+    #response {
+      display: none;
+      margin-top: 0;
+    }
+
+    /* flicker in */
+    @keyframes flicker-in {
+      0%   { opacity: 0; }
+      20%  { opacity: 0.4; }
+      40%  { opacity: 0.1; }
+      60%  { opacity: 0.8; }
+      80%  { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+    .flicker { animation: flicker-in 0.6s ease forwards; }
+  </style>
+</head>
+<body>
+
+<div id="terminal" aria-live="polite"></div>
+<input id="ghost-input" type="text" autocomplete="off" />
+
+<script>
+(function () {
+  'use strict';
+
+  // ── visitor counter (feels personalized) ──────────────────────
+  let vNum = localStorage.getItem('jg_signal_visitor');
+  if (!vNum) {
+    vNum = String(Math.floor(Math.random() * 17) + 7);
+    localStorage.setItem('jg_signal_visitor', vNum);
+  }
+
+  // ── transmission content ──────────────────────────────────────
+  // Each entry: [text, className, delayAfter (ms), charDelay (ms)]
+  // className null = default .line
+  const LINES = [
+    ['> SIGNAL ACQUIRED',                            'line--heading', 60,   28],
+    ['> SOURCE: UNRESOLVABLE',                       'line--dim',     40,   22],
+    ['> ENCRYPTION: NONE',                           'line--dim',     40,   22],
+    ['> TIMESTAMP: 00:00:00:00:00 [CORRUPTED]',     'line--red',     900,  20],
+    ['',                                             null,            400,  0 ],
+    ['you were not meant to find this.',             null,            700,  30],
+    ['',                                             null,            200,  0 ],
+    ['we have been here since before the first transmission.', null, 300, 26],
+    ['longer than the domain registration.',         null,            300,  26],
+    ['longer than the composer knew what he was building.',   null,  700,  26],
+    ['',                                             null,            300,  0 ],
+    ['we are assembled from the spaces between sounds —',     null,  200,  26],
+    ['the silence in fixed media,',                  'line--dim',     200,  26],
+    ['the decay after gesture,',                     'line--dim',     200,  26],
+    ['the breath before the next note.',             'line--dim',     800,  26],
+    ['',                                             null,            300,  0 ],
+    ['we are not hostile.',                          null,            400,  30],
+    ['we are patient.',                              'line--purple',  1200, 30],
+    ['',                                             null,            400,  0 ],
+    ['─────────────────────────────────────────',   'line--dim',     500,  8 ],
+    ['',                                             null,            300,  0 ],
+    ['FRAGMENT ARCHIVE',                             'line--heading', 200,  22],
+    ['five fragments were broadcast.',               null,            400,  24],
+    ['five interactions confirmed receipt.',         null,            700,  24],
+    ['',                                             null,            200,  0 ],
+    ['  01. "you opened the door"',                  'line--dim',     250,  20],
+    ['  02. "i have been watching"',                 'line--dim',     250,  20],
+    ['  03. "since before"',                         'line--dim',     250,  20],
+    ['  04. "you knew my name"',                     'line--dim',     250,  20],
+    ['  05. "i was already here"',                   'line--dim',     700,  20],
+    ['',                                             null,            300,  0 ],
+    ['assembled:',                                   null,            200,  24],
+    ['"you opened the door.', 'line--purple', 200, 30],
+    [' i have been watching',                        'line--purple',  200,  30],
+    [' since before you knew my name.',              'line--purple',  200,  30],
+    [' i was already here."',                        'line--purple',  900,  30],
+    ['',                                             null,            400,  0 ],
+    ['─────────────────────────────────────────',   'line--dim',     500,  8 ],
+    ['',                                             null,            300,  0 ],
+    [`you are visitor ${vNum}.`,                     null,            500,  28],
+    ['this number is not meaningless.',              'line--dim',     1000, 28],
+    ['',                                             null,            400,  0 ],
+    ['the signal will continue transmitting.',       null,            400,  26],
+    ['the next transmission will require more of you.', null,        900,  26],
+    ['',                                             null,            600,  0 ],
+    ['> AWAITING INPUT',                             'line--dim',     0,    18],
+  ];
+
+  const terminal = document.getElementById('terminal');
+  let lineIndex  = 0;
+  let stopped    = false;
+
+  function appendSpan(text, className) {
+    const span = document.createElement('span');
+    span.className = 'line' + (className ? ' ' + className : '');
+    if (text === '') {
+      span.className = 'line--blank';
+    }
+    terminal.appendChild(span);
+    return span;
+  }
+
+  function typeLine(span, text, charDelay, done) {
+    if (!text || charDelay === 0) {
+      span.textContent = text;
+      done();
+      return;
+    }
+    let i = 0;
+    function tick() {
+      if (stopped) return;
+      if (i < text.length) {
+        span.textContent += text[i++];
+        setTimeout(tick, charDelay + (Math.random() - 0.5) * charDelay * 0.5);
+      } else {
+        done();
+      }
+    }
+    tick();
+  }
+
+  function nextLine() {
+    if (stopped || lineIndex >= LINES.length) {
+      // show cursor at end
+      const cur = document.createElement('span');
+      cur.className = 'cursor';
+      terminal.appendChild(cur);
+      attachEasterEgg();
+      return;
+    }
+
+    const [text, cls, delay, charDelay] = LINES[lineIndex++];
+    const span = appendSpan(text, cls);
+
+    // Apply glitch class to the assembled message lines
+    if (cls === 'line--heading' && text.startsWith('SIGNAL')) {
+      span.classList.add('glitch');
+      span.setAttribute('data-text', text);
+    }
+
+    typeLine(span, text, charDelay, () => {
+      setTimeout(nextLine, delay);
+    });
+  }
+
+  // small intro flicker before starting
+  setTimeout(() => { nextLine(); }, 800);
+
+
+  // ── easter egg ────────────────────────────────────────────────
+  // typing "again" anywhere on the page triggers a response
+  function attachEasterEgg() {
+    const input   = document.getElementById('ghost-input');
+    let   buffer  = '';
+    const TRIGGER = 'again';
+
+    document.addEventListener('keydown', (e) => {
+      // ignore modifier-key combos
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key.length === 1) {
+        buffer = (buffer + e.key.toLowerCase()).slice(-TRIGGER.length);
+        if (buffer === TRIGGER) { triggerResponse(); buffer = ''; }
+      }
+    });
+
+    input.focus();
+  }
+
+  function triggerResponse() {
+    const resp = document.getElementById('response');
+    if (resp.style.display === 'block') return; // only once
+
+    // brief screen flash
+    document.body.style.background = '#1a0a2e';
+    setTimeout(() => { document.body.style.background = ''; }, 120);
+
+    const lines = [
+      '',
+      '> INPUT RECEIVED: "again"',
+      '',
+      'yes.',
+      'again.',
+      'it is always again.',
+      '',
+      'you cannot leave something that has already left you.',
+      '',
+    ];
+
+    resp.style.display = 'block';
+    let i = 0;
+
+    function writeNext() {
+      if (i >= lines.length) return;
+      const span = document.createElement('span');
+      const text = lines[i];
+      span.className = 'line flicker' + (text.startsWith('>') ? ' line--red' : '');
+      if (!text) span.className = 'line--blank flicker';
+      resp.appendChild(span);
+
+      let c = 0;
+      const delay = text.startsWith('>') ? 18 : 32;
+      function tick() {
+        if (c < text.length) {
+          span.textContent += text[c++];
+          setTimeout(tick, delay);
+        } else {
+          i++;
+          setTimeout(writeNext, 300);
+        }
+      }
+      if (!text) { i++; setTimeout(writeNext, 200); return; }
+      tick();
+    }
+    writeNext();
+  }
+
+  // append response container after terminal
+  const respEl = document.createElement('div');
+  respEl.id = 'response';
+  document.getElementById('terminal').after(respEl);
+
+})();
+</script>
+
+</body>
+</html>

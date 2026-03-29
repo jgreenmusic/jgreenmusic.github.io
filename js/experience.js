@@ -489,8 +489,11 @@
   // ----------------------------------------------------------------
   function next() {
     if (notifIndex >= NOTIFICATIONS.length) return;
-    showNotification(NOTIFICATIONS[notifIndex]);
+    const notif = NOTIFICATIONS[notifIndex];
     notifIndex++;
+    if (!(notif.isReveal && revealShown)) {
+      showNotification(notif);
+    }
     if (notifIndex < NOTIFICATIONS.length) setTimeout(next, NOTIFICATION_INTERVAL);
   }
 

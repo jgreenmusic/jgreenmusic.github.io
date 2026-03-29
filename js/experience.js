@@ -416,7 +416,6 @@
       } else {
         triggerSample(notif.sample, false);
         interactedCount++;
-        speakFragment();
         maybeShowReveal();
       }
       closeCard();
@@ -433,7 +432,6 @@
         }
         triggerSample(notif.sample, action === notif.loudOn);
         interactedCount++;
-        speakFragment();
         maybeShowReveal();
         closeCard();
       });
@@ -443,44 +441,6 @@
   function dismiss(card) {
     card.classList.remove('xp-visible');
     setTimeout(() => card && card.remove(), 400);
-  }
-
-
-  // ----------------------------------------------------------------
-  // TTS — fragmented voice, spoken on each notification interaction
-  // Assembles into a message the visitor must piece together themselves.
-  // ----------------------------------------------------------------
-  const TTS_FRAGMENTS = [
-    'you opened the door',
-    'i have been watching',
-    'since before',
-    'you knew my name',
-    'i was already here',
-  ];
-  let ttsIndex = 0;
-
-  function speakFragment() {
-    if (!window.speechSynthesis || ttsIndex >= TTS_FRAGMENTS.length) return;
-    const text  = TTS_FRAGMENTS[ttsIndex++];
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.rate   = 0.72;
-    utter.pitch  = 0.18;
-    utter.volume = 0.55;
-
-    const assignVoice = () => {
-      const voices = window.speechSynthesis.getVoices();
-      const chosen = voices.find(v =>
-        /david|daniel|uk.*male|en.gb|fred|ralph/i.test(v.name)
-      ) || voices[0];
-      if (chosen) utter.voice = chosen;
-      window.speechSynthesis.speak(utter);
-    };
-
-    if (window.speechSynthesis.getVoices().length) {
-      assignVoice();
-    } else {
-      window.speechSynthesis.addEventListener('voiceschanged', assignVoice, { once: true });
-    }
   }
 
 

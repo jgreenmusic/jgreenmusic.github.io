@@ -146,3 +146,110 @@ function maybeGlitch() {
 }
 
 setInterval(maybeGlitch, INTERVAL);
+
+
+// ----------------------------------------------------------------
+// Easter egg — type "again" anywhere to trigger the signal transition
+// ----------------------------------------------------------------
+(function () {
+  let buffer  = '';
+  const TRIGGER = 'again';
+
+  const FONTS = [
+    "'Space Grotesk', sans-serif",
+    "'Space Mono', monospace",
+    "'Syne', sans-serif",
+    'Georgia, serif',
+    "'Times New Roman', serif",
+    'Courier New, monospace',
+    'Impact, sans-serif',
+    'Arial, sans-serif',
+    'Garamond, serif',
+    'Palatino, serif',
+    'Futura, sans-serif',
+    'cursive',
+    'fantasy',
+  ];
+
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key.length !== 1) return;
+    buffer = (buffer + e.key.toLowerCase()).slice(-TRIGGER.length);
+    if (buffer === TRIGGER) { startTransition(); buffer = ''; }
+  });
+
+  function startTransition() {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = [
+      'position:fixed', 'inset:0', 'z-index:99999',
+      'overflow:hidden', 'pointer-events:none',
+      'background:transparent', 'transition:background 0.3s',
+    ].join(';');
+    document.body.appendChild(overlay);
+
+    const LABELS   = ['Again', 'again', 'AGAIN', 'Again', 'again'];
+    const WEIGHTS  = ['300', '400', '500', '700', '800'];
+    const STYLES   = ['normal', 'normal', 'normal', 'italic'];
+    const COLORS   = ['#ffffff', '#ffffff', '#b97ef8', '#e0e0e0', 'rgba(255,255,255,0.5)'];
+
+    let count    = 0;
+    const MAX    = 55;
+    let delay    = 550;
+
+    // Fade background to black as words accumulate
+    let darkness = 0;
+    const darken = setInterval(() => {
+      darkness = Math.min(0.96, darkness + 0.012);
+      overlay.style.background = `rgba(0,0,0,${darkness})`;
+      if (darkness >= 0.96) clearInterval(darken);
+    }, 120);
+
+    function spawn() {
+      if (count >= MAX) {
+        setTimeout(() => { window.location.href = '/signal'; }, 600);
+        return;
+      }
+
+      const word    = document.createElement('span');
+      const font    = FONTS[Math.floor(Math.random() * FONTS.length)];
+      const size    = 18 + Math.random() * 90;
+      const x       = Math.random() * 88;
+      const y       = Math.random() * 88;
+      const rot     = (Math.random() - 0.5) * 28;
+      const opacity = 0.35 + Math.random() * 0.65;
+      const label   = LABELS[Math.floor(Math.random() * LABELS.length)];
+      const weight  = WEIGHTS[Math.floor(Math.random() * WEIGHTS.length)];
+      const style   = STYLES[Math.floor(Math.random() * STYLES.length)];
+      const color   = COLORS[Math.floor(Math.random() * COLORS.length)];
+
+      word.textContent = label;
+      word.style.cssText = [
+        'position:absolute',
+        `left:${x}%`,
+        `top:${y}%`,
+        `font-family:${font}`,
+        `font-size:${size}px`,
+        `font-weight:${weight}`,
+        `font-style:${style}`,
+        `color:${color}`,
+        'opacity:0',
+        `transform:rotate(${rot}deg)`,
+        'transition:opacity 0.5s ease',
+        'white-space:nowrap',
+        'pointer-events:none',
+        'user-select:none',
+      ].join(';');
+
+      overlay.appendChild(word);
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        word.style.opacity = String(opacity);
+      }));
+
+      count++;
+      delay = Math.max(70, delay * 0.91);
+      setTimeout(spawn, delay);
+    }
+
+    spawn();
+  }
+}());

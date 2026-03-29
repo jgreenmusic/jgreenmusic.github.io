@@ -227,6 +227,7 @@
       const cur = document.createElement('span');
       cur.className = 'cursor';
       terminal.appendChild(cur);
+      stopSignalAudio();
       attachEasterEgg();
       return;
     }
@@ -245,8 +246,67 @@
     });
   }
 
+  // ── audio: plays during animation, fades out when done ──────────
+  const AUDIO_SAMPLES = [
+    '../assets/audio/samples/again.mp3',
+    '../assets/audio/samples/limitless.mp3',
+    '../assets/audio/samples/vestige.mp3',
+    '../assets/audio/samples/synapses.mp3',
+    '../assets/audio/samples/noumenics.mp3',
+  ];
+
+  let signalAudio  = null;
+  let audioFading  = false;
+
+  function initSignalAudio() {
+    const src      = AUDIO_SAMPLES[Math.floor(Math.random() * AUDIO_SAMPLES.length)];
+    signalAudio    = new Audio(src);
+    signalAudio.loop   = true;
+    signalAudio.volume = 0;
+
+    const attempt = () => {
+      signalAudio.play().then(() => {
+        fadeAudioTo(0.5, 3000);
+      }).catch(() => {
+        // autoplay blocked — try again on first interaction
+        const unlock = () => {
+          signalAudio.play().then(() => fadeAudioTo(0.5, 3000)).catch(() => {});
+          document.removeEventListener('keydown', unlock);
+          document.removeEventListener('click',   unlock);
+        };
+        document.addEventListener('keydown', unlock, { once: true });
+        document.addEventListener('click',   unlock, { once: true });
+      });
+    };
+    attempt();
+  }
+
+  function fadeAudioTo(target, durationMs) {
+    if (!signalAudio) return;
+    const steps    = 40;
+    const interval = durationMs / steps;
+    const start    = signalAudio.volume;
+    const delta    = (target - start) / steps;
+    let   i        = 0;
+    const tick     = setInterval(() => {
+      if (!signalAudio) { clearInterval(tick); return; }
+      i++;
+      signalAudio.volume = Math.min(1, Math.max(0, start + delta * i));
+      if (i >= steps) {
+        clearInterval(tick);
+        if (target === 0) { signalAudio.pause(); signalAudio = null; }
+      }
+    }, interval);
+  }
+
+  function stopSignalAudio() {
+    if (!signalAudio || audioFading) return;
+    audioFading = true;
+    fadeAudioTo(0, 2500);
+  }
+
   // small intro flicker before starting
-  setTimeout(() => { nextLine(); }, 800);
+  setTimeout(() => { initSignalAudio(); nextLine(); }, 800);
 
 
   // ── easter egg ────────────────────────────────────────────────

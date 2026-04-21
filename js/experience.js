@@ -399,6 +399,9 @@
     container.appendChild(card);
     requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add('xp-visible')));
 
+    let dismissed = false;
+    let autoDismissTimer;
+
     function maybeShowReveal() {
       // All 5 sample cards interacted with and Archive not yet shown → show it now
       const sampleCount = NOTIFICATIONS.filter(n => !n.isReveal).length;
@@ -409,6 +412,9 @@
     }
 
     function closeCard() {
+      if (dismissed) return;
+      dismissed = true;
+      clearTimeout(autoDismissTimer);
       liveCards--;
       dismiss(card);
     }
@@ -416,13 +422,12 @@
     card.querySelector('.xp-close').addEventListener('click', () => {
       if (notif.isReveal) {
         fadeOutAndStop();
+        closeAllCards();
       } else {
-        if (notif.glitch) triggerScreenGlitch();
-        triggerSample(notif.sample, false);
         interactedCount++;
         maybeShowReveal();
+        closeCard();
       }
-      closeCard();
     });
 
     card.querySelectorAll('.xp-btn').forEach(btn => {
@@ -431,7 +436,7 @@
         if (notif.isReveal) {
           if (action === 'Download') downloadWAV();
           fadeOutAndStop();
-          closeCard();
+          closeAllCards();
           return;
         }
         if (notif.glitch) triggerScreenGlitch();
@@ -441,11 +446,18 @@
         closeCard();
       });
     });
+
+    autoDismissTimer = setTimeout(() => closeCard(), notif.isReveal ? 15000 : 8000);
+  }
+
+  function closeAllCards() {
+    if (container) container.querySelectorAll('.xp-card').forEach(c => dismiss(c));
   }
 
   function dismiss(card) {
+    card.style.transition = 'opacity 280ms ease, transform 280ms ease';
     card.classList.remove('xp-visible');
-    setTimeout(() => card && card.remove(), 400);
+    setTimeout(() => card && card.remove(), 300);
   }
 
 

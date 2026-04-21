@@ -419,13 +419,12 @@
       dismiss(card);
     }
 
-    card.querySelector('.xp-close').addEventListener('click', () => {
+    card.querySelector('.xp-close').addEventListener('click', (e) => {
+      e.stopPropagation();
       if (notif.isReveal) {
         fadeOutAndStop();
         closeAllCards();
       } else {
-        interactedCount++;
-        maybeShowReveal();
         closeCard();
       }
     });

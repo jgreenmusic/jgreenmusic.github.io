@@ -145,15 +145,48 @@
 <input id="ghost-input" type="text" autocomplete="off" />
 
 <script>
-(function () {
+(async function () {
   'use strict';
 
-  // ── visitor counter (feels personalized) ──────────────────────
-  let vNum = localStorage.getItem('jg_signal_visitor');
-  if (!vNum) {
-    vNum = String(Math.floor(Math.random() * 17) + 7);
-    localStorage.setItem('jg_signal_visitor', vNum);
+  // ── visitor number ────────────────────────────────────────────
+  // The real number of visitors to this page, read from GoatCounter's public
+  // counter. No key is needed, but "Allow adding visitor counts on your
+  // website" must be switched on in the GoatCounter site settings. If the
+  // count cannot be read within three seconds, the page falls back to the
+  // made-up number it used before, kept in this browser.
+  async function fetchSignalCount() {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3000);
+    try {
+      const r = await fetch(
+        'https://poosic.goatcounter.com/counter/' + encodeURIComponent(location.pathname) + '.json',
+        { signal: controller.signal }
+      );
+      if (!r.ok) return null;
+      const d = await r.json();
+      return d && d.count ? String(d.count) : null;
+    } catch (e) {
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
   }
+  function madeUpNumber() {
+    let n = null;
+    try { n = localStorage.getItem('jg_signal_visitor'); } catch (e) {}
+    if (!n) {
+      n = String(Math.floor(Math.random() * 17) + 7);
+      try { localStorage.setItem('jg_signal_visitor', n); } catch (e) {}
+    }
+    return n;
+  }
+  // The count is fetched during the intro pause, so it costs no extra time
+  // unless GoatCounter is slow.
+  const [signalCount] = await Promise.all([
+    fetchSignalCount(),
+    new Promise(resolve => setTimeout(resolve, 800)),
+  ]);
+  const vNum = signalCount || madeUpNumber();
 
   // ── transmission content ──────────────────────────────────────
   // Each entry: [text, className, delayAfter (ms), charDelay (ms)]
@@ -305,8 +338,9 @@
     fadeAudioTo(0, 2500);
   }
 
-  // small intro flicker before starting
-  setTimeout(() => { initSignalAudio(); nextLine(); }, 800);
+  // the intro pause has already passed above; start now
+  initSignalAudio();
+  nextLine();
 
 
   // ── easter egg ────────────────────────────────────────────────
@@ -383,6 +417,7 @@
 
 })();
 </script>
+<script data-goatcounter="https://poosic.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 
 </body>
 </html>
